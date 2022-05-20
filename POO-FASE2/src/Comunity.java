@@ -23,10 +23,10 @@ public class Comunity implements Messages{
 		this.id_comunity = count.incrementAndGet();
 	}
 	
-	public void new_member(User new_user) throws IllegalArgumentException{
+	public void new_member(User new_user) throws UserAlreadyExistsException{
 		if(members.contains(new_user)) {
-			IllegalArgumentException illegalEntrance = new IllegalArgumentException();
-			throw illegalEntrance;
+			UserAlreadyExistsException ex = new UserAlreadyExistsException();
+			throw ex;
 		}
 		this.members.add(new_user);
 	}

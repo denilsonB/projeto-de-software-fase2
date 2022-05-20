@@ -75,7 +75,7 @@ public class User implements Messages{
 	}
 	
 	public void addAttribute(String key,String value) throws Exception{
-		if(key.length()<3 || value.length()<3) {
+		if(key.length()<3 || value.length()<3 || attributes.containsKey(key)) {
 			//IllegalFormatException formatInvalid = new IllegalFormatException();
 			throw IllegalFormatException;
 		}else {
@@ -94,7 +94,11 @@ public class User implements Messages{
 			this.attributes.replace(key, value);
 		}
 	}
-	public void newNotfication(User notification) {
+	public void newNotfication(User notification) throws UserAlreadyExistsException{
+		if(notifications.contains(notification) | friends.contains(notification)) {
+			UserAlreadyExistsException ex = new UserAlreadyExistsException();
+			throw ex;
+		}
 		this.notifications.add(notification);
 	}
 	

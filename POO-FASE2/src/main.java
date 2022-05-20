@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.IllegalFormatException;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -39,6 +40,7 @@ public class main {
 	
 	public static void main(String[] args) {
 		List<User> accounts = new ArrayList<User>();
+		List<String> used_emails = new ArrayList<String>();
 		List<Comunity> comunities = new ArrayList<Comunity>();
 		Scanner scanner = new Scanner(System.in).useDelimiter("\n");
 		User user = new User();
@@ -70,13 +72,16 @@ public class main {
 		        }
 			}else if(op.equals("2")) {
 		        try {
-		  
-			        
+		        	user = new User();
 		        	System.out.print("Digite seu email: ");
 			        String login = scanner.nextLine();
 			        if(!validEmail(login)) {
-			        	throw illegalEntrance;
-			        }
+			        	InvalidEmailException e = new InvalidEmailException();
+			        	throw e;
+			        }else if(used_emails.contains(login)) {
+				    	UserAlreadyExistsException ex = new UserAlreadyExistsException();
+						throw ex;
+					}
 			        user.addAttribute("login",login);
 			        
 			        System.out.print("Digite sua senha: ");
@@ -90,12 +95,17 @@ public class main {
 			        String name = scanner.nextLine();
 			        
 				    user.addAttribute("nome",name);		
-				        
-				        
+				    
 				    accounts.add(user);
 				    System.out.println("Conta criada com sucesso!!: ");
-		        }catch(IllegalArgumentException e ) {
+				    used_emails.add(login);
+		        }catch(InvalidEmailException e ) {
+		        	System.out.println("Email Invalido ");
+		        }
+		        catch(IllegalArgumentException e ) {
 		        	System.out.println("Formato Invalido ");
+		        }catch(UserAlreadyExistsException e ) {
+		        	System.out.println("Email já cadastrado");
 		        }
 		        catch (Exception e) {
 		        	System.out.println("Algo deu errado na criação de conta, tente novamente");
@@ -161,7 +171,7 @@ public class main {
 						System.out.println("Por favor digite um numero");	
 					}catch(IndexOutOfBoundsException e) {
 						System.out.println("Por favor digite um id valido");
-					}catch(IllegalArgumentException e ) {
+					}catch(UserAlreadyExistsException e ) {
 			        	System.out.println("Você já faz parte dessa comunidade");
 			        }catch(Exception e) {
 			        	System.out.println("Algo deu errado ao entrar na comunidade, tente novamente");
@@ -183,10 +193,25 @@ public class main {
 							if(!usr.getAttributes().get("login").equals(user.getAttributes().get("login")))
 								System.out.println(usr.getId_user() + "-"+usr.getAttributes().get("nome"));
 						}
-				        System.out.print("Digite o id do usuario que você quer ser amigo: ");
-				        String id = scanner.nextLine();
-				        User u = accounts.get(Integer.parseInt(id)-2);
-				        u.newNotfication(user);
+						try {
+					        System.out.print("Digite o id do usuario que você quer ser amigo: ");
+					        String id = scanner.nextLine();
+					        User u = accounts.get(Integer.parseInt(id)-2);
+					        if(u.equals(user)) {
+					        	throw illegalEntrance;
+					        }
+					        u.newNotfication(user);
+					        System.out.println("Solicitação enviada com sucesso !");
+						}catch(NumberFormatException e ) {
+							System.out.println("Por favor digite um numero");	
+						}catch(IndexOutOfBoundsException | IllegalArgumentException ex) {
+							System.out.println("Por favor digite um id valido");
+						}catch(UserAlreadyExistsException e ) {
+				        	System.out.println("Você e está pessoa já estão relacionadas");
+				        }catch(Exception e) {
+				        	System.out.println("Algo deu errado ao adicionar amigo, tente novamente");
+				        }
+
 					}else {
 						System.out.println("Infelizmente só você cricou conta até o momento");
 					}
@@ -194,30 +219,41 @@ public class main {
 				}else if(op.equals("5")) {
 					user.my_info();
 				}else if(op.equals("6")) {
-			        System.out.print("Digite o nome do atributo ");
-			        String key = scanner.nextLine();
+					try {
+						System.out.print("Digite o nome do atributo ");
+				        String key = scanner.nextLine();
+				        
+				        System.out.print("Digite as informações do atributo: ");
+				        String value = scanner.nextLine();
 			        
-			        System.out.print("Digite as informações do atributo: ");
-			        String value = scanner.nextLine();
-			        try {
 			        	user.addAttribute(key, value);
 			        }catch (IllegalFormatException e ) {
-			        	System.out.println("Os atributos precisam ter mais de 2 caracteres ");
+			        	System.out.println("O atributo digitado é invalido");
 			        } catch (Exception e) {
 			        	System.out.println("Algo deu errado na criação de um novo atributo , tente novamente");
 			        }
 			        
 				}
 				else if(op.equals("7")) {
-					user.my_attributes();
-			        System.out.print("Digite o nome do atributo para ser editado ");
-			        String key = scanner.nextLine();
+					try {
+						user.my_attributes();
+				        System.out.print("Digite o nome do atributo para ser editado ");
+				        String key = scanner.nextLine();
+				        
+				        System.out.print("Digite o novo valor do atributo: ");
+				        String value = scanner.nextLine();
 			        
-			        System.out.print("Digite o novo valor do atributo: ");
-			        String value = scanner.nextLine();
-			        try {
+			        	if(key.equals("login")) {
+			        		if(!validEmail(key)) {
+			        			InvalidEmailException e = new InvalidEmailException();
+					        	throw e;
+					        }
+			        	}
 			        	user.editAttribute(key, value);
-			        }catch (IllegalFormatException e ) {
+			        }catch(InvalidEmailException e ) {
+			        	System.out.println("Digite um email valido");
+			        }
+			        catch (IllegalFormatException e ) {
 			        	System.out.println("Os atributos precisam ter mais de 2 caracteres ");
 			        }catch (IllegalArgumentException e) {
 			        	System.out.println("O atributo digitado não existe");
@@ -227,63 +263,94 @@ public class main {
 			        }
 			        
 				}else if(op.equals("8")) {
-					System.out.println("Solicitações de amizade:");
-					user.listNotifications();
-					System.out.print("1-Aceitar\n2-Recusar\n3-Voltar:");
-					String choice = scanner.nextLine();
-					if(choice.equals("1")) {
-						System.out.print("Digite o Id da notificação que você quer aceitar: ");
-						String id = scanner.nextLine();
-						User usr = user.getNotifications().remove(Integer.parseInt(id)-1);
-						user.addFriend(usr);
-						accounts.set(accounts.indexOf(usr), usr).addFriend(user);
-					}else if(choice.equals("2")) {
-						System.out.print("Digite o Id da notificação que você quer rejeitar: ");
-						String id = scanner.nextLine();
-						user.getNotifications().remove(Integer.parseInt(id)-1);
-					}
-				}else if(op.equals("9")) {
-					System.out.print("1-Amigo\n2-Comunidade\n3-voltar:");
-					String choice = scanner.nextLine();
-					if(choice.equals("1")) {
-						if(user.getFriends().size()>0) {
-							user.my_friends();
-							System.out.print("Digite o Id do amigo que deseja mandar mensagem: ");
-							String id = scanner.nextLine();		
-							System.out.print("Digite o conteudo da mensagem: ");
-							String content = scanner.nextLine();	
-							
-							Message message = new Message(user,content);
-							user.newMessage(message);
-							accounts.get(Integer.parseInt(id)-2).newMessage(message);
-						}else {
-							System.out.println("Você não tem nenhum amigo :/ ");
+					try {
+						System.out.println("Solicitações de amizade:");
+						user.listNotifications();
+						System.out.print("1-Aceitar\n2-Recusar\n3-Voltar:");
+						String choice = scanner.nextLine();
+						if(choice.equals("1")) {
+							System.out.print("Digite o Id da notificação que você quer aceitar: ");
+							String id = scanner.nextLine();
+							User usr = user.getNotifications().remove(Integer.parseInt(id)-1);
+							user.addFriend(usr);
+							accounts.set(accounts.indexOf(usr), usr).addFriend(user);
+						}else if(choice.equals("2")) {
+							System.out.print("Digite o Id da notificação que você quer rejeitar: ");
+							String id = scanner.nextLine();
+							user.getNotifications().remove(Integer.parseInt(id)-1);
 						}
-					}else if(choice.equals("2")) {
+					}catch(NumberFormatException e ) {
+						System.out.println("Por favor digite um numero");	
+					}catch(IndexOutOfBoundsException | IllegalArgumentException ex) {
+						System.out.println("Por favor digite um id valido");
+					}catch(Exception e) {
+			        	System.out.println("Algo deu errado nas notificações, tente novamente");
+			        }
+
+					
+				}else if(op.equals("9")) {
+					try {
+						System.out.print("1-Amigo\n2-Comunidade\n3-voltar:");
+						String choice = scanner.nextLine();
+						if(choice.equals("1")) {
+							if(user.getFriends().size()>0) {
+								user.my_friends();
+								System.out.print("Digite o Id do amigo que deseja mandar mensagem: ");
+								String id = scanner.nextLine();		
+								System.out.print("Digite o conteudo da mensagem: ");
+								String content = scanner.nextLine();	
+								
+								Message message = new Message(user,content);
+								accounts.get(Integer.parseInt(id)-2).newMessage(message);
+								user.newMessage(message);
+							}else {
+								System.out.println("Você não tem nenhum amigo :/ ");
+							}
+						}else if(choice.equals("2")) {
+							if(user.getMy_comunities().size()>0) {
+								user.my_comunities();
+								System.out.print("Digite o Id da comunidade que deseja mandar mensagem: ");
+								String id = scanner.nextLine();		
+								System.out.print("Digite o conteudo da mensagem: ");
+								String content = scanner.nextLine();	
+								
+								Message message = new Message(user,content);
+								comunities.get(Integer.parseInt(id)-2).newMessage(message);
+							}else {
+								System.out.println("Você não faz parte de nenhuma comunidade :/ ");
+							}
+							
+						}
+					}catch(NumberFormatException e ) {
+						System.out.println("Por favor digite um numero no id");	
+					}catch(IndexOutOfBoundsException e) {
+						System.out.println("Por favor digite um id valido");
+					}catch(IllegalArgumentException e ) {
+			        	System.out.println("O conteudo não pode ter mais de 50 caracteres  ");
+			        }
+					catch(Exception e) {
+			        	System.out.println("Algo deu errado ao enviar mensagem, tente novamente");
+			        }
+				}else if(op.equals("10")) {
+					try {
 						if(user.getMy_comunities().size()>0) {
 							user.my_comunities();
-							System.out.print("Digite o Id da comunidade que deseja mandar mensagem: ");
+							System.out.print("Digite o Id da comunidade que deseja ver o feed: ");
 							String id = scanner.nextLine();		
-							System.out.print("Digite o conteudo da mensagem: ");
-							String content = scanner.nextLine();	
-							
-							Message message = new Message(user,content);
-							comunities.get(Integer.parseInt(id)-2).newMessage(message);
+							System.out.println("Mensagens na "+comunities.get(Integer.parseInt(id)-2).getName());
+							comunities.get(Integer.parseInt(id)-2).my_messages();
 						}else {
-							System.out.println("Você não faz parte de nenhuma comunidade :/ ");
-						}
-						
+							System.out.print("Você não faz parte de nenhuma comunidade :/ ");
+						}						
+					}catch(NumberFormatException e ) {
+						System.out.println("Por favor digite um numero no id");	
+					}catch(IndexOutOfBoundsException e) {
+						System.out.println("Por favor digite um id valido");
 					}
-				}else if(op.equals("10")) {
-					if(user.getMy_comunities().size()>0) {
-						user.my_comunities();
-						System.out.print("Digite o Id da comunidade que deseja ver o feed: ");
-						String id = scanner.nextLine();		
-						System.out.print("Mensagens na "+comunities.get(Integer.parseInt(id)-2).getName());
-						comunities.get(Integer.parseInt(id)-2).my_messages();
-					}else {
-						System.out.print("Você não faz parte de nenhuma comunidade :/ ");
-					}
+					catch(Exception e) {
+			        	System.out.println("Algo deu a ver fedd da comunidade, tente novamente");
+			        }
+
 				}else if(op.equals("11")) {
 					System.out.print("Digite o conteudo da mensagem: ");
 					String content = scanner.nextLine();	

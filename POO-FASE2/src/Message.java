@@ -9,7 +9,12 @@ public class Message {
 	
 	public Message(User sender, String content) {
 		this.sender = sender;
+		if(content.length()>50) {
+			IllegalArgumentException illegalEntrance = new IllegalArgumentException();
+			throw illegalEntrance;
+		}
 		this.content = content;
+		
 	}
 	
 	
