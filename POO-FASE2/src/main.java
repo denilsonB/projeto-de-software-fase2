@@ -301,8 +301,13 @@ public class main {
 								String content = scanner.nextLine();	
 								
 								Message message = new Message(user,content);
+								if(user.equals(accounts.get(Integer.parseInt(id)-2))) {
+									UserAlreadyExistsException e = new UserAlreadyExistsException();
+									throw e;
+								}
 								accounts.get(Integer.parseInt(id)-2).newMessage(message);
 								user.newMessage(message);
+								System.out.println("Mensagem enviada com sucesso");
 							}else {
 								System.out.println("Você não tem nenhum amigo :/ ");
 							}
@@ -323,10 +328,10 @@ public class main {
 						}
 					}catch(NumberFormatException e ) {
 						System.out.println("Por favor digite um numero no id");	
-					}catch(IndexOutOfBoundsException e) {
+					}catch(IndexOutOfBoundsException  | UserAlreadyExistsException e) {
 						System.out.println("Por favor digite um id valido");
 					}catch(IllegalArgumentException e ) {
-			        	System.out.println("O conteudo não pode ter mais de 50 caracteres  ");
+			        	System.out.println("O conteudo possui tamanho invalido(precisa ser entre 3 e 50) ");
 			        }
 					catch(Exception e) {
 			        	System.out.println("Algo deu errado ao enviar mensagem, tente novamente");
@@ -352,18 +357,27 @@ public class main {
 			        }
 
 				}else if(op.equals("11")) {
-					System.out.print("Digite o conteudo da mensagem: ");
-					String content = scanner.nextLine();	
-					
-					Message message = new Message(user,content);
-					
-					System.out.print("Quem pode ver essa mensagem?\n1-Geral\n2-Só amigos ");
-					String choice = scanner.nextLine();	
-					if(choice.equals("1")) {
-						feed_general.add(message);
-					}else {
-						feed_friends.add(message);
-					}
+					try {
+						System.out.print("Digite o conteudo da mensagem: ");
+						String content = scanner.nextLine();	
+						
+						Message message = new Message(user,content);
+						
+						System.out.print("Quem pode ver essa mensagem?\n1-Geral\n2-Só amigos ");
+						String choice = scanner.nextLine();	
+						if(choice.equals("1")) {
+							feed_general.add(message);
+						}else if(choice.equals("2")){
+							feed_friends.add(message);
+						}else {
+							System.out.println("Digite um numero valido ");
+						}
+					}catch(IllegalArgumentException e ) {
+			        	System.out.println("O conteudo possui tamanho invalido(precisa ser entre 3 e 50)  ");
+			        }catch(Exception e) {
+			        	System.out.println("Algo deu errado ao enviar mensagem, tente novamente");
+			        }
+
 				}else if(op.equals("12")) {
 					System.out.println("Feed Geral: ");
 					for(int i=0;i<feed_general.size();i++) {
@@ -376,39 +390,45 @@ public class main {
 						}
 					}
 				}else if(op.equals("13")) {
-					System.out.print("Tem certeza que seja apagar a conta?\n1-Sim\n2-Não ");
-					String choice = scanner.nextLine();
-					if(choice.equals("1")) {
-						for(int i=0;i<feed_general.size();i++) {
-							if(feed_general.get(i).getSender().equals(user)){
-								feed_general.remove(i);
-							}
-						}
-						for(int i=0;i<feed_friends.size();i++) {
-							if(feed_friends.get(i).getSender().equals(user)){
-								feed_friends.remove(i);
-							}
-						}
-						for(User friend : user.getFriends()) {
-							for(int i=0;i<friend.getMy_messages().size();i++) {
-								if(friend.getMy_messages().get(i).getSender().equals(user)) {
-									friend.getMy_messages().remove(i);
+					try {
+						System.out.print("Tem certeza que seja apagar a conta?\n1-Sim\n2-Não ");
+						String choice = scanner.nextLine();
+						if(choice.equals("1")) {
+							for(int i=0;i<feed_general.size();i++) {
+								if(feed_general.get(i).getSender().equals(user)){
+									feed_general.remove(i);
 								}
 							}
-						}	
-						for(User friend : user.getFriends()) {
-							friend.getFriends().remove(user);
-						}
-						for(Comunity comun : user.getMy_comunities()) {
-							for(int i=0;i<comun.getMy_messages().size();i++) {
-								if(comun.getMy_messages().get(i).getSender().equals(user)) {
-									comun.getMy_messages().remove(i);
+							for(int i=0;i<feed_friends.size();i++) {
+								if(feed_friends.get(i).getSender().equals(user)){
+									feed_friends.remove(i);
 								}
 							}
+							for(User friend : user.getFriends()) {
+								for(int i=0;i<friend.getMy_messages().size();i++) {
+									if(friend.getMy_messages().get(i).getSender().equals(user)) {
+										friend.getMy_messages().remove(i);
+									}
+								}
+							}	
+							for(User friend : user.getFriends()) {
+								friend.getFriends().remove(user);
+							}
+							for(Comunity comun : user.getMy_comunities()) {
+								for(int i=0;i<comun.getMy_messages().size();i++) {
+									if(comun.getMy_messages().get(i).getSender().equals(user)) {
+										comun.getMy_messages().remove(i);
+									}
+								}
+							}
+							accounts.remove(user);
+							user = null;
+							logado=false;
 						}
-						accounts.remove(user);
-						user = null;
+					}catch(Exception e) {
+						System.out.print("Algo deu errado na remoção de conta, tente novamente");
 					}
+				
 				}
 		}
 	
