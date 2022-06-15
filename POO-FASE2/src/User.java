@@ -76,7 +76,6 @@ public class User implements Messages{
 	
 	public void addAttribute(String key,String value) throws Exception{
 		if(key.length()<3 || value.length()<3 || attributes.containsKey(key)) {
-			//IllegalFormatException formatInvalid = new IllegalFormatException();
 			throw IllegalFormatException;
 		}else {
 			this.attributes.put(key, value);
@@ -84,7 +83,6 @@ public class User implements Messages{
 	}
 	public void editAttribute(String key,String value) throws Exception {
 		if(key.length()<3 || value.length()<3) {
-			//InvalidFormatException formatInvalid = new InvalidFormatException();
 			throw IllegalFormatException;
 		}else if(!attributes.containsKey(key)) {
 			IllegalArgumentException illegalEntrance = new IllegalArgumentException();
