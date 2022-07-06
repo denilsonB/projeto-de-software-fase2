@@ -9,3 +9,7 @@
 - Vários condicionais alinhados (long method)
 - Uma classe modificada por diferentes motivos (divergent change)
 - Hierarquia de classes desnecessaria (lazy class)
+
+# Padrões de Projeto
+- Bridge
+- Decorator
